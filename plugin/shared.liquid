@@ -1,0 +1,230 @@
+{% template main %}
+{% liquid
+  assign stats    = data.listening_stats
+  assign sessions = data.listening_sessions.sessions
+  assign books    = data.items_in_progress.libraryItems
+
+  assign today_sec = stats.today     | default: 0
+  assign total_sec = stats.totalTime | default: 0
+
+  assign today_h = today_sec | divided_by: 3600
+  assign today_m = today_sec | modulo: 3600 | divided_by: 60
+  assign total_h = total_sec | divided_by: 3600
+  assign total_m = total_sec | modulo: 3600 | divided_by: 60
+
+  assign server     = trmnl.plugin_settings.custom_fields_values.server
+  assign auth_token = data.me.token
+
+  assign recent        = sessions | first
+  assign recent_itemid = recent.libraryItemId
+  assign book_title    = recent.displayTitle  | default: "—"
+  assign book_author   = recent.displayAuthor | default: "—"
+  assign book_year     = recent.mediaMetadata.publishedYear | default: ""
+  assign book_pos      = recent.currentTime | default: 0
+  assign book_dur      = recent.duration    | default: 1
+
+  for book in books
+    if book.id == recent_itemid
+      assign book_dur = book.media.duration | default: book_dur
+    endif
+  endfor
+
+  assign cover_url    = server | append: "/api/items/" | append: recent_itemid | append: "/cover?token=" | append: auth_token
+  assign book_pct     = book_pos | times: 100.0 | divided_by: book_dur | round: 1
+  assign book_pct_bar = book_pct | round: 0
+
+  assign book_dur_h = book_dur | divided_by: 3600 | floor
+  assign book_dur_m = book_dur | modulo: 3600 | divided_by: 60 | floor
+  assign book_pos_h = book_pos | divided_by: 3600 | floor
+  assign book_pos_m = book_pos | modulo: 3600 | divided_by: 60 | floor
+
+  assign max_day_sec = 1
+  for day in stats.days
+    if day[1] > max_day_sec
+      assign max_day_sec = day[1]
+    endif
+  endfor
+
+  assign streak    = 0
+  assign prev_date = nil
+  for session in sessions
+    if forloop.first
+      assign streak    = 1
+      assign prev_date = session.date
+    else
+      if session.date != prev_date
+        assign prev_date = session.date
+        assign streak    = streak | plus: 1
+      endif
+    endif
+    if streak >= 7
+      break
+    endif
+  endfor
+
+  assign local_ts     = trmnl.system.timestamp_utc | plus: trmnl.user.utc_offset
+  assign display_time = local_ts | date: "%H:%M"
+  assign display_date = local_ts | date: "%b %-d"
+%}
+
+  <div class="layout layout--row gap--none">
+    <div class="flex flex--row">
+    {{/* ── LEFT COLUMN: Cover + Book Info ── */}}
+    <div class="flex flex--col gap w--49 p--4" style="flex-shrink:0;">
+
+      <div class="h--[50cqh]" style="overflow:hidden; flex-shrink:0;">
+        <img src="{{ cover_url }}" class="image image-dither image--cover w--full h--full" />
+      </div>
+
+      <div class="flex flex--col gap--small">
+        <span class="label">▶ Now Listening</span>
+        <span class="title" data-clamp="2">{{ book_title }}</span>
+        <span class="description">{{ book_author }}{% if book_year != "" %} · {{ book_year }}{% endif %}</span>
+      </div>
+
+      <div class="flex flex--col gap--small w--full">
+        <div class="progress-bar progress-bar--small">
+          <div class="content">
+            <span class="label label--small">{{ book_pos_h }}h {{ book_pos_m }}m / {{ book_dur_h }}h {{ book_dur_m }}m</span>
+            <span class="value value--xxsmall">{{ book_pct }}%</span>
+          </div>
+          <div class="track">
+            <div class="fill" style="width:{{ book_pct_bar }}%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="divider--v"></div>
+
+    {{/* ── RIGHT COLUMN: Stats + Chart ── */}}
+    <div class="flex flex--col gap--space-between p--4" style="flex:1; min-width:0;">
+
+      {{/* Stat boxes */}}
+      <div class="grid grid--cols-3">
+
+        <div class="item">
+          <div class="meta"></div>
+          <div class="content">
+            <span class="value value--large value--tnums">{{ today_h }}h {{ today_m }}m</span>
+            <span class="label">Today</span>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="meta"></div>
+          <div class="content">
+            <span class="value value--large value--tnums">{{ total_h }}h {{ total_m }}m</span>
+            <span class="label">This Week</span>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="meta"></div>
+          <div class="content">
+            <span class="value value--large value--tnums">{{ streak }}</span>
+            <span class="label">Day Streak</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      {{/* Bar chart */}}
+      <span class="label">Daily Listening — Last 7 Days</span>
+      <div id="abs-chart" class="w--full"></div>
+
+    </div>
+  </div>
+  </div>
+  <div class="title_bar">
+    <span class="title">🎧 Audiobookshelf</span>
+    <span class="instance">{{ data.me.username | escape }}</span>
+  </div>
+
+<script src="https://trmnl.com/js/highcharts/12.3.0/highcharts.js"></script>
+<script src="https://trmnl.com/js/highcharts/12.3.0/pattern-fill.js"></script>
+<script type="text/javascript">
+  var days = [
+    {% for day in stats.days %}
+    {
+      name: {{ day[0] | date: "%a" | json }},
+      y: {{ day[1] }},
+      isToday: {% if forloop.last %}true{% else %}false{% endif %}
+    }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ];
+
+  Highcharts.chart('abs-chart', {
+    chart: {
+      type: 'column',
+      height: 220,
+      width: null,
+      animation: false,
+      spacing: [10, 10, 5, 10]
+    },
+    title: { text: null },
+    credits: { enabled: false },
+    legend: { enabled: false },
+    tooltip: { enabled: false },
+    plotOptions: {
+      series: {
+        animation: false,
+        enableMouseTracking: false,
+        states: { hover: { enabled: false } },
+        borderWidth: 0,
+        pointPadding: 0.05,
+        groupPadding: 0.1,
+        dataLabels: {
+          enabled: true,
+          formatter: function() {
+            if (this.y < 60) return '';
+            var h = Math.floor(this.y / 3600);
+            var m = Math.floor((this.y % 3600) / 60);
+            return h > 0 ? h + 'h' : m + 'm';
+          },
+          style: { fontSize: '14px', fontWeight: 'bold', textOutline: 'none', color: '#000000' }
+        }
+      }
+    },
+    xAxis: {
+      type: 'category',
+      categories: days.map(function(d) { return d.name; }),
+      lineWidth: 0,
+      gridLineDashStyle: 'dot',
+      gridLineWidth: 1,
+      gridLineColor: '#000000',
+      tickWidth: 0,
+      tickLength: 0,
+      labels: { style: { fontSize: '16px', color: '#000000' } }
+    },
+    yAxis: {
+      title: { text: null },
+      gridLineDashStyle: 'shortdot',
+      gridLineWidth: 1,
+      gridLineColor: '#000000',
+      tickAmount: 4,
+      labels: {
+        formatter: function() {
+          var h = Math.floor(this.value / 3600);
+          return h > 0 ? h + 'h' : '';
+        },
+        style: { fontSize: '16px', color: '#000000' }
+      }
+    },
+    series: [{
+      data: days.map(function(d) {
+        return {
+          y: d.y,
+          color: d.isToday
+            ? { pattern: { image: 'https://trmnl.com/images/grayscale/gray-3.png', width: 12, height: 12 } }
+            : '#000000'
+        };
+      })
+    }]
+  });
+</script>
+
+{% endtemplate %}

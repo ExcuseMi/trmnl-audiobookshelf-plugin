@@ -1,0 +1,20 @@
+---
+strategy: polling
+no_screen_padding: 'no'
+dark_mode: 'no'
+static_data: ''
+polling_verb: get
+polling_url: "{{server}}/api/me\r\n\r\n{{server}}/api/me/listening-sessions\r\n\r\n{{server}}/api/me/listening-stats\r\n\r\n{{server}}/api/me/items-in-progress"
+polling_headers: Authorization=Bearer {{token}}
+polling_body: ''
+id: 251214
+custom_fields:
+- keyname: server
+  field_type: url
+  name: Server
+- keyname: token
+  field_type: password
+  name: token
+  description: API Key / Token
+name: Audiobookshelf
+refresh_interval: 1440
