@@ -1,1 +1,1 @@
-# trmnl-audiobookself-plugin
+# trmnl-audiobookshelf-plugin
