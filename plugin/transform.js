@@ -1,5 +1,4 @@
 function transform(input) {
-  return { "test" };
   return { data: {
     me: input.IDX_0,
     listening_sessions: input.IDX_1,

@@ -18,8 +18,8 @@
 
   assign recent        = sessions | first
   assign recent_itemid = recent.libraryItemId
-  assign book_title    = recent.displayTitle  | default: "—"
-  assign book_author   = recent.displayAuthor | default: "—"
+  assign book_title    = recent.displayTitle  | default: "â"
+  assign book_author   = recent.displayAuthor | default: "â"
   assign book_year     = recent.mediaMetadata.publishedYear | default: ""
   assign book_pos      = recent.currentTime | default: 0
   assign book_dur      = recent.duration    | default: 1
@@ -70,7 +70,7 @@
 
   <div class="layout layout--row gap--none">
     <div class="flex flex--row">
-    {{/* ── LEFT COLUMN: Cover + Book Info ── */}}
+    {{/* ââ LEFT COLUMN: Cover + Book Info ââ */}}
     <div class="flex flex--col gap w--49 p--4" style="flex-shrink:0;">
 
       <div class="h--[50cqh]" style="overflow:hidden; flex-shrink:0;">
@@ -78,9 +78,9 @@
       </div>
 
       <div class="flex flex--col gap--small">
-        <span class="label">▶ Now Listening</span>
+        <span class="label">â¶ Now Listening</span>
         <span class="title" data-clamp="2">{{ book_title }}</span>
-        <span class="description">{{ book_author }}{% if book_year != "" %} · {{ book_year }}{% endif %}</span>
+        <span class="description">{{ book_author }}{% if book_year != "" %} Â· {{ book_year }}{% endif %}</span>
       </div>
 
       <div class="flex flex--col gap--small w--full">
@@ -99,7 +99,7 @@
 
     <div class="divider--v"></div>
 
-    {{/* ── RIGHT COLUMN: Stats + Chart ── */}}
+    {{/* ââ RIGHT COLUMN: Stats + Chart ââ */}}
     <div class="flex flex--col gap--space-between p--4" style="flex:1; min-width:0;">
 
       {{/* Stat boxes */}}
@@ -134,14 +134,14 @@
       <div class="divider"></div>
 
       {{/* Bar chart */}}
-      <span class="label">Daily Listening — Last 7 Days</span>
+      <span class="label">Daily Listening â Last 7 Days</span>
       <div id="abs-chart" class="w--full"></div>
 
     </div>
   </div>
   </div>
   <div class="title_bar">
-    <span class="title">🎧 Audiobookshelf</span>
+    <span class="title">ð§ Audiobookshelf</span>
     <span class="instance">{{ data.me.username | escape }}</span>
   </div>
 
