@@ -16,5 +16,5 @@ custom_fields:
   field_type: password
   name: token
   description: API Key / Token
-name: Audiobookshelf test
+name: Audiobookshelf
 refresh_interval: 1440
