@@ -1,0 +1,128 @@
+<div class="layout layout--row gap--none">
+
+  {{/* LEFT: Cover + current book */}}
+  <div class="flex flex--col gap p--4"">
+    <img src="{{ cover_url }}" class="image image-dither image--c w--[20cqw]" />
+    <div class="flex flex--col gap--small">
+      <span class="label">{% if now_listening %}▶ Now Listening{% elsif current_book %}Continue Listening{% endif %}</span>
+      <span class="title" data-clamp="2">{{ book_title }}</span>
+      <span class="description">{{ book_author }}</span>
+    </div>
+
+    <div class="progress-bar progress-bar w--full">
+      <div class="content">
+        <div class="label label--small text--right w--full">{{ book_pos_h }}h {{ book_pos_m }}m / {{ book_dur_h }}h {{ book_dur_m }}m</div>
+
+      </div>
+      <div class="track">
+        <div class="fill" style="width:{{ book_pct_bar }}%"></div>
+      </div>
+      <span class="value value--xxsmall">{{ book_pct }}%</span>
+
+    </div>
+  </div>
+
+  <div class="divider--v"></div>
+
+  {{/* RIGHT: Stats + chart + sessions + heatmap */}}
+  <div class="flex flex--col gap p--4" style="flex:1; min-width:0;">
+
+    {{/* Top stats row */}}
+    <div class="grid grid--cols-4 {{ stats_classes }}">
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--tnums">{{ items_finished }}</span>
+          <span class="label label--small">Items Finished</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--tnums">{{ days_listened }}</span>
+          <span class="label label--small">Days Listened</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--tnums">{{ week_min }}</span>
+          <span class="label label--small">Min/Week</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--tnums">{{ streak }}</span>
+          <span class="label label--small">Day Streak</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    {{/* Chart + sessions side by side */}}
+    <div class="columns">
+
+      {{/* Bar chart + weekly summary */}}
+      <div class="column flex flex--col gap--small {{ chart_classes }}" style="flex:1; min-width:0;">
+        <span class="label">Minutes — Last 7 Days</span>
+        <div id="{{abs_chart_id}}" style="flex:1; min-height:0; overflow:hidden; width:100%;"></div>
+        <div class="grid grid--cols-3">
+          <div class="flex flex--col gap--none" style="text-align:center;">
+            <span class="value value--small value--tnums">{{ week_min }}</span>
+            <span class="label label--small">Week total</span>
+          </div>
+          <div class="flex flex--col gap--none" style="text-align:center;">
+            <span class="value value--small value--tnums">{{ daily_avg_min }}</span>
+            <span class="label label--small">Daily avg</span>
+          </div>
+          <div class="flex flex--col gap--none" style="text-align:center;">
+            <span class="value value--small value--tnums">{{ best_min }}</span>
+            <span class="label label--small">Best day</span>
+          </div>
+        </div>
+      </div>
+
+
+      {{/* Recent sessions */}}
+      <div class="column " >
+        <div class="item">
+
+          <div class="meta"></div>
+          <div class="content w--full">
+            <div class="label">Recent Sessions</div>
+
+            <div class="flex flex--col w--full">
+              {% for session in sessions limit: 6 %}
+              {% assign s_h = session.timeListening | divided_by: 3600 | floor %}
+              {% assign s_m = session.timeListening | modulo: 3600 | divided_by: 60 | floor %}
+              <div class="flex flex--row gap--small w--full" style="align-items:baseline; justify-content:space-between;">
+                <span class="description" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">{{ session.displayTitle }}</span>
+                <span class="value value--xxsmall value--tnums" style="flex-shrink:0; margin-left:4px;">{% if s_h > 0 %}{{ s_h }}h {{ s_m }}m{% else %}{{ s_m }}m{% endif %}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    {{/* Heatmap */}}
+    <div class="flex flex--col gap--none {{ heatmap_classes }}">
+      <span class="label mb--1">{{ days_listened }} days listened in the last year</span>
+      <div style="position:relative;">
+        <div id="{{abs_heatmap_months_id}}" style="position:relative; height:12px; margin-left:20px;"></div>
+        <div style="display:flex;">
+          <div id="{{abs_heatmap_days_id}}" style="width:18px; flex-shrink:0; position:relative; height:76px;"></div>
+          <div id="{{abs_heatmap_id}}" style="position:relative; height:76px; flex:1;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% render "title_bar", data: data %}

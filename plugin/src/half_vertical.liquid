@@ -1,0 +1,53 @@
+  <div class="layout layout--col gap p--4">
+    <div class="flex flex--row gap">
+      <div style="width:3.5rem; flex-shrink:0;">
+        <img src="{{ cover_url }}" class="image image-dither image--cover w--full" style="height:5rem;" />
+      </div>
+      <div class="flex flex--col gap--small" style="min-width:0;">
+        <span class="label">{% if now_listening %}▶ Now Listening{% elsif current_book %}Continue Listening{% endif %}</span>
+        <span class="title title--small" data-clamp="2">{{ book_title }}</span>
+        <span class="description">{{ book_author }}</span>
+      </div>
+    </div>
+    <div class="progress-bar progress-bar--small">
+      <div class="content">
+        <span class="label label--small">{{ book_pos_h }}h {{ book_pos_m }}m / {{ book_dur_h }}h {{ book_dur_m }}m</span>
+        <span class="value value--xxsmall">{{ book_pct }}%</span>
+      </div>
+      <div class="track">
+        <div class="fill" style="width:{{ book_pct_bar }}%"></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="grid grid--cols-2 {{ stats_classes }}">
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--tnums" data-value-fit="true">{{ items_finished }}</span>
+          <span class="label label--small">Finished</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--tnums" data-value-fit="true">{{ days_listened }}</span>
+          <span class="label label--small">Days</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--large value--tnums" data-value-fit="true">{{ week_min }}</span>
+          <span class="label label--small">Min/Week</span>
+        </div>
+      </div>
+      <div class="item">
+        <div class="meta"></div>
+        <div class="content">
+          <span class="value value--large value--tnums" data-value-fit="true">{{ streak }}</span>
+          <span class="label label--small">Day Streak</span>
+        </div>
+      </div>
+    </div>
+  </div>
+{% render "title_bar", data: data %}
